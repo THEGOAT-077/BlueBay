@@ -394,8 +394,6 @@ function sheet(){
   h+=`<div class="row"><h2>Your account</h2><button class="x" data-a="acct-close" aria-label="Close account">${ico('i-no')}</button></div>`;
   if(isGuest)h+=`<p class="meta">You’re using BlueBay as a guest, <b>${esc(myName)}</b>. Sign in to add bays, vote and earn badges, and to keep your name and trust score on any device.</p>
    <form id="emailf"><input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com" required aria-label="Email address"><button class="btn primary" type="submit">Email me a sign-in link</button></form>
-   <div class="or">or</div>
-   <button class="btn g" data-a="google"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2-1.9 3.2-4.7 3.2-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7.1H2.1a11 11 0 0 0 0 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>Continue with Google</button>
    <p class="meta" style="margin:10px 0 0;font-size:12px">Your captures, reports and votes so far stay with your account.</p>`;
   else{const p=people[uid]||{},pts=p.points||0,i=TIERS.findIndex(t=>t[0]===(p.badge||'blue')),nx=TIERS[i+1],cur=TIERS[i]||TIERS[0];
    h+=`<p class="meta">Signed in${myEmail?` as <b>${esc(myEmail)}</b>`:''}.</p>

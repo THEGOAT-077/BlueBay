@@ -31,7 +31,7 @@ BlueBay lets the community keep accessible bays up to date in real time. People 
 - **Directions to the nearest free bay**, with a drawn route, turn-by-turn steps and a hand-off to Google Maps.
 - **Live updates.** Every change appears for everyone within about a second.
 - **You have to be there.** Capturing, reporting and adding a bay all check your GPS position (100–150 m), in the app *and* in the database, so nobody can fake a report from home.
-- **Accounts.** Start instantly as a guest, then sign in with an email link or Google. The guest account is upgraded in place, so nothing is lost.
+- **Accounts.** Start instantly as a guest, then sign in with an email link. Google sign-in is coded and will be switched on after the hackathon. The guest account is upgraded in place, so nothing is lost.
 - **Votes and trust.** Signed-in users upvote or downvote pins ("is this a real bay, in the right place?") and people ("are their reports accurate?").
 - **Badges.** People earn points for bays they add that the community upvotes, progressing from **Blue** to **Bronze** (10), **Silver** (20), **Gold** (30) and **Platinum** (50).
 - **Mobile first**, with light and dark mode.
