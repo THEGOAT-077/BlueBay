@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BlueBay</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&display=swap">
+<style>
+:root{--bg:#eaf1f9;--card:#fff;--text:#0c1c33;--muted:#5a6b82;--line:#dfe7f1;--brand:#0f62fe;--free:#12a150;--taken:#d93a3a;--unk:#7a8797;--on:#fff;--land:#e6ecf4;--bldg:#d6dfeb;--road:#fff;--casing:#c8d3e1;--park:#c6e7c3;--water:#9fcbf2;--shadow:0 6px 24px rgba(12,28,51,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#070e1b;--card:#101a2c;--text:#e8eff9;--muted:#93a4ba;--line:#1f2d44;--brand:#3d85ff;--free:#34c474;--taken:#ff6b6b;--unk:#8896a8;--on:#07121f;--land:#14202f;--bldg:#1b293c;--road:#27374f;--casing:#0d1624;--park:#173826;--water:#0f2c4b;--shadow:0 6px 24px rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#070e1b;--card:#101a2c;--text:#e8eff9;--muted:#93a4ba;--line:#1f2d44;--brand:#3d85ff;--free:#34c474;--taken:#ff6b6b;--unk:#8896a8;--on:#07121f;--land:#14202f;--bldg:#1b293c;--road:#27374f;--casing:#0d1624;--park:#173826;--water:#0f2c4b;--shadow:0 6px 24px rgba(0,0,0,.5);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:500 15px/1.4 Figtree,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;-webkit-tap-highlight-color:transparent}
+.app{width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:var(--card);position:relative;overflow:hidden}
+@media(min-width:500px){.app{box-shadow:var(--shadow)}}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.logo{width:36px;height:36px;border-radius:11px;background:var(--brand);display:grid;place-items:center}
+.logo svg{width:22px;height:22px}
+h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+header small{color:var(--muted);font-size:12px}
+.chip{margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:var(--bg);font-size:13px;font-weight:700}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.mapwrap{flex:1;min-height:170px;position:relative;background:var(--land);overflow:hidden}
+#map{width:100%;height:100%;display:block;overflow:visible;touch-action:manipulation}
+.pin{cursor:pointer;outline:none}.pin:focus-visible path{stroke:var(--text)}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{from{transform:scale(.5);opacity:.5}to{transform:scale(1.7);opacity:0}}
+@keyframes flow{to{stroke-dashoffset:-14}}
+.rflow{stroke-dasharray:2 12;stroke-linecap:round;animation:flow .8s linear infinite}
+@media(prefers-reduced-motion:reduce){.pulse,.rflow{animation:none}}
+.rl{font-size:9px;font-weight:700;fill:var(--muted)}
+.pl{font-size:12px;font-weight:800;fill:var(--text);paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.legend{position:absolute;top:10px;left:10px;display:flex;gap:10px;padding:7px 11px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);font-size:12px;font-weight:600}
+.legend span{display:flex;align-items:center;gap:5px}
+.fab{position:absolute;right:12px;bottom:14px;display:flex;align-items:center;gap:8px;padding:13px 18px;border:0;border-radius:99px;background:var(--brand);color:#fff;font:700 14px Figtree,system-ui,sans-serif;box-shadow:var(--shadow);cursor:pointer}
+.fab[hidden]{display:none}
+.fab svg,.btn svg{width:18px;height:18px;flex:none}
+.toast{position:absolute;top:56px;left:50%;transform:translate(-50%,-8px);max-width:88%;padding:9px 14px;border-radius:12px;background:var(--text);color:var(--card);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.sheet{background:var(--card);border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:2;padding:10px 16px 16px;box-shadow:0 -6px 24px rgba(12,28,51,.12);max-height:55%;overflow:auto;flex:none}
+.grab{width:36px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 12px}
+.row{display:flex;align-items:center;gap:10px}
+h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em;flex:1}
+.badge{padding:3px 11px;border-radius:99px;font-size:12px;font-weight:700;color:var(--on)}
+.meta{margin:3px 0 12px;color:var(--muted);font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:0 12px;border:1.5px solid var(--line);border-radius:13px;background:var(--card);color:var(--text);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;width:100%}
+.btn.primary{background:var(--brand);border-color:transparent;color:#fff}
+.btn.free{color:var(--free);border-color:var(--free)}.btn.taken{color:var(--taken);border-color:var(--taken)}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn:focus-visible,.fab:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.q{font-size:13px;font-weight:700;margin:14px 0 7px}
+.x{border:0;background:var(--bg);color:var(--text);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.x svg{width:16px;height:16px}
+.mine{background:var(--bg);border-radius:13px;padding:11px 13px;margin-bottom:10px;font-size:14px}
+.steps{list-style:none;margin:0 0 12px;padding:0;max-height:24dvh;overflow:auto}
+.steps li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.steps li span{color:var(--muted);flex:none}
+.pop{position:absolute;z-index:3;width:244px;padding:13px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);animation:popin .16s ease-out}
+.pop[hidden]{display:none}
+.pop::after{content:"";position:absolute;left:var(--tx,50%);bottom:-6px;width:14px;height:14px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:3px}
+.pop.below::after{bottom:auto;top:-6px}
+.pop b{display:block;font-size:16px;font-weight:800;padding-right:28px}
+.pop span{display:block;color:var(--muted);font-size:12px;margin:1px 0 10px}
+.pop .btn{min-height:40px;font-size:13px}
+.pop .x{position:absolute;top:9px;right:9px;width:26px;height:26px}
+@keyframes popin{from{opacity:0;transform:scale(.92)}}
+@media(prefers-reduced-motion:reduce){.pop{animation:none}}
+#map{position:absolute;inset:0;width:auto;height:auto;z-index:0}
+.mk{position:relative;transform-origin:bottom center;transition:transform .12s;cursor:pointer}
+.mk.on{transform:scale(1.3)}
+.mk svg{display:block}
+.mk.mine::before{content:"";position:absolute;left:50%;bottom:-8px;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:var(--brand);opacity:.4;animation:pulse 1.8s ease-out infinite}
+.you{width:18px;height:18px;box-sizing:border-box;border-radius:50%;background:var(--brand);border:3px solid #fff;transform:translateY(50%);animation:ring 2s ease-out infinite}
+@keyframes ring{from{box-shadow:0 0 0 0 rgba(15,98,254,.5)}to{box-shadow:0 0 0 18px rgba(15,98,254,0)}}
+.cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);pointer-events:none;z-index:4}
+.cross[hidden]{display:none}
+.fab.alt{left:12px;right:auto;padding:13px;background:var(--card);color:var(--text)}
+.err{padding:28px 22px;color:var(--muted);font-size:14px;line-height:1.55}
+.err code{background:var(--bg);padding:2px 6px;border-radius:6px;word-break:break-all}
+@media(prefers-reduced-motion:reduce){.you,.mk.mine::before{animation:none}}
+.votes{display:flex;gap:6px;flex:none}
+.vbtn{display:flex;align-items:center;gap:4px;min-height:36px;padding:0 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:700 13px Figtree,system-ui,sans-serif;cursor:pointer}
+.vbtn svg{width:16px;height:16px}
+.vbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}.vbtn.on.down{background:var(--taken);border-color:var(--taken)}
+.vbtn:disabled{opacity:.38;cursor:not-allowed}.vbtn:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.who{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.who small{display:block;color:var(--muted);font-size:12px}.who b{font-size:14px}.score{color:var(--muted);font-size:12px;font-weight:600}
+.meta a{color:var(--brand);font-weight:700}
+.area{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.area>small{display:block;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.facts div{background:var(--bg);border-radius:12px;padding:9px 11px}.facts b{display:block;font-size:16px;font-weight:800}.facts span{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.src{margin:8px 0 0;color:var(--muted);font-size:11px}
+.gap{list-style:none;margin:0 0 10px;padding:0}.gap li{padding:9px 0;border-bottom:1px solid var(--line)}.gap b{display:block;font-size:14px}.gap span{display:block;color:var(--muted);font-size:12px}
+.gap i{display:block;height:6px;border-radius:6px;background:var(--taken);margin-top:6px}
+.far{margin:-4px 0 12px;padding:9px 12px;border-radius:12px;background:var(--bg);color:var(--muted);font-size:13px;font-weight:600}
+.avatar{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--bg);color:var(--text);font:800 14px Figtree,system-ui,sans-serif;cursor:pointer;display:grid;place-items:center;position:relative}
+.avatar.guest::after{content:"";position:absolute;right:0;top:0;width:10px;height:10px;border-radius:50%;background:var(--taken);border:2px solid var(--card)}
+.avatar:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.field{width:100%;box-sizing:border-box;min-height:46px;padding:0 14px;border:1.5px solid var(--line);border-radius:13px;background:var(--card);color:var(--text);font:600 15px Figtree,system-ui,sans-serif;margin-bottom:8px}
+.field:focus{outline:none;border-color:var(--brand)}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:12px 0}.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.btn.g svg{width:18px;height:18px}
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 6px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.02em;vertical-align:1px;color:#fff;white-space:nowrap}
+.bdg svg{width:12px;height:12px}
+.b-blue{background:#1f6feb}.b-bronze{background:#a8642f}.b-silver{background:#6f7d8c}.b-gold{background:#b8860b}
+.b-platinum{background:linear-gradient(135deg,#3e6f7d,#7fa9b5 50%,#3e6f7d)}
+.prog{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin:8px 0 4px}.prog i{display:block;height:100%;border-radius:8px;background:var(--brand)}
+.tiers{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}.tiers .bdg{opacity:.35}.tiers .bdg.got{opacity:1}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="isa" viewBox="0 0 24 24"><circle cx="11" cy="4" r="1.8" fill="#fff"/><path d="M11 8v6h5l3 5M11 11h5M8 10.5a5.5 5.5 0 1 0 7.5 8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-3 4 3 4H5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l5 5L20 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-no" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+<symbol id="i-nav" viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-loc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+<symbol id="i-medal" viewBox="0 0 24 24"><path d="M8 2l4 7 4-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="15" r="6.5" fill="currentColor" opacity=".35"/><circle cx="12" cy="15" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+<symbol id="i-up"viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+<div class="app">
+<header>
+<div class="logo"><svg><use href="#isa"/></svg></div>
+<div><h1>BlueBay</h1><small>Accessible parking, checked by people</small></div>
+<div class="chip"><i class="dot" style="background:var(--free)"></i><span id="count"></span></div>
+<button id="acct" class="avatar" aria-label="Your account"></button>
+</header>
+<div class="mapwrap" id="mapwrap">
+<div id="map"></div>
+<div id="cross" class="cross" hidden><svg width="34" height="46" viewBox="-14 -38 28 40"><path d="M0 0C-3-8-13-14-13-24a13 13 0 0 1 26 0C13-14 3-8 0 0Z" fill="var(--brand)" stroke="#fff" stroke-width="2"/><use href="#isa" x="-7.5" y="-31.5" width="15" height="15"/></svg></div>
+<div class="legend"><span><i class="dot" style="background:var(--free)"></i>Free</span><span><i class="dot" style="background:var(--taken)"></i>Taken</span><span><i class="dot" style="background:var(--unk)"></i>Unsure</span><span><i class="dot" style="background:var(--brand)"></i>Yours</span></div>
+<div id="toast" class="toast" role="status"></div>
+<div id="pop" class="pop" role="dialog" aria-label="Confirm spot status" hidden></div>
+<button id="loc" class="fab alt" aria-label="Centre on my location"><svg><use href="#i-loc"/></svg></button>
+<button id="fab" class="fab"><svg><use href="#i-nav"/></svg>Nearest free spot</button>
+</div>
+<section id="sheet" class="sheet" aria-live="polite"></section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+// ---- Settings: paste your own values here ----
+const CONFIG={API_KEY:'AIzaSyCDeuDe6vj-51ayn547DOiv9XQS_KO1s4A',MAP_ID:'DEMO_MAP_ID',CENTER:{lat:-33.8688,lng:151.2093},RADIUS:1500,
+ SUPABASE_URL:'https://dkzslyosezumvdhykvrk.supabase.co',SUPABASE_KEY:'sb_publishable_bOUQEgEyyzXT62h3qVclbg_t_cl0oUE'};
+const $=i=>document.getElementById(i);
+const sb=supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+let db={spots:{},mine:null},uid=null,myName='',people={},myUserVotes={},busy=false,isGuest=true,myEmail='',acct=false,gapView=false,gapData=null;const areaC={};
+const spots=()=>Object.values(db.spots),find=i=>db.spots[i];
+let map,ov,AM,Route,youM,poly,me=null,sel=null,route=null,ask=null,adding=false,tt;const markers={};
+const col={free:'var(--free)',taken:'var(--taken)',unk:'var(--unk)',mine:'var(--brand)'},lbl={free:'Free',taken:'Taken',unk:'Unsure',mine:'Yours'};
+const kind=s=>s.mine?'mine':s.s,ico=n=>`<svg><use href="#${n}"/></svg>`;
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const agoT=t=>{if(!t)return'never';const m=Math.floor((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':m<1440?Math.floor(m/60)+' h ago':Math.floor(m/1440)+' d ago'};
+const fmt=m=>m==null?'':m>=1000?(m/1000).toFixed(1)+' km':Math.round(m/10)*10+' m';
+const hav=(a,b)=>{const r=x=>x*Math.PI/180,h=Math.sin(r(b.lat-a.lat)/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(r(b.lng-a.lng)/2)**2;return 12742e3*Math.asin(Math.sqrt(h))};
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),3000)}
+
+// ---- Supabase: sign-in, loading and live updates ----
+// Everyone starts as a guest (anonymous account). Signing in with email or
+// Google upgrades that same account, so name, captures and votes are kept.
+const BACK=location.origin+location.pathname;
+async function useSession(session){
+ const u=session.user;uid=u.id;isGuest=!!u.is_anonymous;myEmail=u.email||'';
+ const {data:p}=await sb.from('profiles').select('display_name').eq('id',uid).maybeSingle();myName=p?.display_name||'';
+ await loadMyVotes();
+}
+async function signIn(){
+ authReturn();
+ let {data:{session}}=await sb.auth.getSession();
+ if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}
+ await useSession(session);
+}
+// Handle errors Supabase puts in the URL after an email or Google redirect.
+function authReturn(){
+ const q=new URLSearchParams(location.hash.slice(1)+'&'+location.search.slice(1)),code=q.get('error_code');if(!code)return;
+ history.replaceState(null,'',BACK);
+ if(code==='identity_already_exists'){toast('That Google account already uses BlueBay. Signing you in…');sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:BACK}})}
+ else setTimeout(()=>toast(q.get('error_description')||'Sign-in link didn’t work. Try again.'),300);
+}
+const ready=signIn().catch(e=>{console.error(e);toast('Couldn’t sign in: '+e.message)});
+sb.auth.onAuthStateChange((ev,session)=>{
+ if(!session||ev==='TOKEN_REFRESHED'||ev==='INITIAL_SESSION')return;
+ if(session.user.id!==uid||session.user.is_anonymous!==isGuest||(session.user.email||'')!==myEmail)
+  setTimeout(()=>useSession(session).then(()=>{if(ev==='SIGNED_IN'||ev==='USER_UPDATED')!isGuest&&toast('Signed in. Your account is saved.');return load()}),0);
+});
+async function loadMyVotes(){
+ const {data}=await sb.from('user_votes').select('target_id,vote').eq('voter_id',uid);
+ myUserVotes={};(data||[]).forEach(v=>myUserVotes[v.target_id]=v.vote);
+}
+async function loadPeople(){
+ const ids=[...new Set([uid,...spots().flatMap(s=>[s.capBy,s.repBy,s.src==='user'?s.by:null])].filter(Boolean))];if(!ids.length)return;
+ const [a,b]=await Promise.all([sb.from('profile_scores').select('*').in('id',ids),sb.from('profile_badges').select('id,points,pins_added,pins_up,pins_down,badge').in('id',ids)]);
+ (a.data||[]).forEach(p=>people[p.id]={...people[p.id],...p});(b.data||[]).forEach(p=>people[p.id]={...people[p.id],...p});
+}
+// Only load bays near the map (about 5 km each way), not the whole database.
+let loadedAt=null;
+async function load(){
+ await ready;
+ const c=map?{lat:map.getCenter().lat(),lng:map.getCenter().lng()}:me||CONFIG.CENTER;loadedAt=c;
+ const {data,error}=await sb.from('bay_status').select('*')
+  .gte('lat',c.lat-.045).lte('lat',c.lat+.045).gte('lng',c.lng-.055).lte('lng',c.lng+.055).limit(1000);
+ if(error){console.error(error);return toast('Couldn’t load bays. Check your connection.')}
+ const next={};let mine=null;
+ data.forEach(b=>{const s={id:b.id,name:b.name,lat:b.lat,lng:b.lng,s:b.status,n:b.confirmations,
+  t:b.status_at?Date.parse(b.status_at):0,checked:b.last_checked_at?Date.parse(b.last_checked_at):0,
+  src:b.source,osm:b.osm_ref,by:b.created_by,score:b.score,up:b.upvotes,down:b.downvotes,vote:b.my_vote,
+  capBy:b.captured_by,capName:b.captured_by_name,repBy:b.last_reported_by,repName:b.last_reported_by_name,
+  mine:!!uid&&b.captured_by===uid};next[s.id]=s;if(s.mine)mine=s.id});
+ db={spots:next,mine};
+ Object.keys(markers).forEach(id=>{if(!next[id]){markers[id].map=null;delete markers[id]}});
+ if(sel&&!next[sel])sel=ask=null;
+ if(route&&next[route.spot.id])route.spot=next[route.spot.id];
+ await loadPeople();render();
+}
+let lt;const later=()=>{clearTimeout(lt);lt=setTimeout(load,400)};
+function live(){
+ const ch=sb.channel('bluebay');
+ ['bays','reports','captures','pin_votes','user_votes','profiles'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},later));
+ ch.subscribe();setInterval(load,60000); // also lets old reports fade to "unsure"
+}
+load().then(live);
+
+// ---- Load Google Maps ----
+function fail(m){$('map').innerHTML=`<div class="err"><b>Map not loaded</b><br>${m}</div>`}
+window.gm_authFailure=()=>fail(`Google rejected the API key. Check the Maps JavaScript API is enabled and that <code>${location.origin}/*</code> is an allowed referrer.`);
+if(CONFIG.API_KEY==='YOUR_API_KEY')fail('Add your Google Maps API key to <code>CONFIG.API_KEY</code> at the top of the script.');
+else{const s=document.createElement('script');s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(CONFIG.API_KEY)}&v=weekly&loading=async&callback=initMap`;s.onerror=()=>fail('Couldn’t reach Google Maps. Check your connection.');document.head.append(s)}
+window.initMap=async()=>{
+ const {Map:GMap}=await google.maps.importLibrary('maps');
+ ({AdvancedMarkerElement:AM}=await google.maps.importLibrary('marker'));
+ ({Route}=await google.maps.importLibrary('routes'));
+ map=new GMap($('map'),{center:CONFIG.CENTER,zoom:17,mapId:CONFIG.MAP_ID,disableDefaultUI:true,clickableIcons:false,gestureHandling:'greedy'});
+ ov=new google.maps.OverlayView();ov.onAdd=ov.draw=()=>{};ov.setMap(map);
+ map.addListener('click',()=>{if(!route&&!adding){sel=ask=null;render()}});
+ map.addListener('bounds_changed',place);
+ map.addListener('idle',()=>{const c=map.getCenter();if(!loadedAt||hav(loadedAt,{lat:c.lat(),lng:c.lng()})>2000)later()});
+ render();locate();
+};
+function locate(){
+ const off=()=>importBays('Location is off, so this is the default area. ');
+ if(!navigator.geolocation)return off();
+ navigator.geolocation.watchPosition(p=>{
+  const first=!me,k=nearKey();me={lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy};if(!first&&nearKey()!==k)render();
+  if(!youM)youM=new AM({map,position:me,zIndex:5,title:'You',content:Object.assign(document.createElement('div'),{className:'you'})});else youM.position=me;
+  if(first){map.setCenter(me);importBays('',me)}
+ },()=>{if(!me)off()},{enableHighAccuracy:true,maximumAge:10000});
+}
+// ---- Real accessible bays from OpenStreetMap, saved to the shared database ----
+async function importBays(pre='',at){
+ const c=at||{lat:map.getCenter().lat(),lng:map.getCenter().lng()},a=`(around:${CONFIG.RADIUS},${c.lat},${c.lng})`;
+ const q=`[out:json][timeout:25];(nwr["parking_space"="disabled"]${a};nwr["amenity"="parking"]["capacity:disabled"]["capacity:disabled"!~"^(no|0)$"]${a};);out center 80;`;
+ try{
+  const j=await(await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)})).json();
+  await ready;const known=new Set(spots().map(s=>s.osm));
+  const rows=j.elements.map(e=>({osm_ref:e.type+'/'+e.id,source:'osm',lat:e.lat??e.center?.lat,lng:e.lon??e.center?.lon,
+   name:((e.tags?.name||e.tags?.operator||'').trim()||'Accessible bay').slice(0,80)})).filter(r=>r.lat!=null&&!known.has(r.osm_ref));
+  if(rows.length){const {error}=await sb.from('bays').upsert(rows,{onConflict:'osm_ref',ignoreDuplicates:true});if(error)throw error}
+  await load();toast(pre+(rows.length?`Added ${rows.length} mapped bays from OpenStreetMap.`:'No new mapped bays here. Use Add a bay to place one.'));
+ }catch(e){console.error(e);toast(pre+'Couldn’t load OpenStreetMap data. Try again in a moment.')}
+}
+// ---- Markers and popup ----
+function pinEl(s){const k=kind(s),d=document.createElement('div');d.className='mk'+(s.id===sel?' on':'')+(k==='mine'?' mine':'');
+ d.innerHTML=`<svg width="30" height="42" viewBox="-14 -38 28 40"><path d="M0 0C-3-8-13-14-13-24a13 13 0 0 1 26 0C13-14 3-8 0 0Z" fill="${col[k]}" stroke="#fff" stroke-width="2"/><use href="#isa" x="-7.5" y="-31.5" width="15" height="15"/></svg>`;return d}
+function drawMarkers(){
+ if(!map)return;
+ spots().forEach(s=>{let m=markers[s.id];
+  if(!m){m=markers[s.id]=new AM({map,position:{lat:s.lat,lng:s.lng},gmpClickable:true});m.addEventListener('gmp-click',()=>pick(s.id))}
+  m.content=pinEl(s);m.zIndex=s.id===sel?10:1;m.title=`${s.name}, ${lbl[kind(s)]}`})
+}
+function pick(id){
+ if(adding)return;const s=find(id);
+ if(route&&route.spot.id!==id)clearRoute();
+ sel=id;ask=(s.s==='free'||s.s==='taken')&&!s.mine&&near(s,'report')?id:null;render();
+}
+function popup(){
+ const el=$('pop'),s=ask&&find(ask);
+ if(!map||!s||s.id!==sel||s.mine||s.s==='unk'||!near(s,'report')){el.hidden=true;return}
+ const f=s.s==='free';
+ el.innerHTML=`<button class="x" data-q="close" aria-label="Dismiss">${ico('i-no')}</button><b>${f?'Still free?':'Still taken?'}</b><span>${f?'Marked free':'Marked taken'} ${agoT(s.t)}</span><div class="grid2"><button class="btn ${f?'free':'taken'}" data-q="yes">${ico('i-ok')}Yes, ${f?'free':'taken'}</button><button class="btn ${f?'taken':'free'}" data-q="no">${ico('i-no')}No, ${f?'taken':'free'}</button></div>`;
+ el.hidden=false;place();
+}
+function place(){
+ const el=$('pop'),s=ask&&find(ask),pr=ov&&ov.getProjection();
+ if(el.hidden||!s||!pr)return;
+ const p=pr.fromLatLngToContainerPixel(new google.maps.LatLng(s.lat,s.lng)),w=$('mapwrap').clientWidth,pw=el.offsetWidth,ph=el.offsetHeight;
+ const up=p.y-66-ph>=8,left=Math.min(Math.max(p.x-pw/2,8),w-pw-8);
+ el.classList.toggle('below',!up);el.style.left=left+'px';el.style.top=(up?p.y-66-ph:p.y+12)+'px';
+ el.style.setProperty('--tx',Math.min(Math.max(p.x-left,20),pw-20)+'px');
+}
+// ---- Directions (Routes API) ----
+async function routeTo(s){
+ if(!me){toast('Turn on location to get directions.');return null}
+ try{
+  const {routes}=await Route.computeRoutes({origin:me,destination:{lat:s.lat,lng:s.lng},travelMode:'DRIVING',fields:['durationMillis','distanceMeters','path','legs']});
+  const r=routes&&routes[0];if(!r)throw 0;
+  return{spot:s,path:r.path.map(p=>({lat:p.lat,lng:p.lng})),m:r.distanceMeters,ms:r.durationMillis,
+   steps:((r.legs&&r.legs[0]&&r.legs[0].steps)||[]).map(x=>[x.instructions||(x.navigationInstruction&&x.navigationInstruction.instructions)||'Continue',x.distanceMeters])};
+ }catch(e){console.error(e);toast('Directions failed. Check the Routes API is enabled for your key.');return null}
+}
+function showRoute(r){
+ clearRoute();route=r;sel=r.spot.id;ask=null;
+ poly=new google.maps.Polyline({map,path:r.path,strokeColor:'#0f62fe',strokeWeight:6,strokeOpacity:.95});
+ const b=new google.maps.LatLngBounds();r.path.forEach(p=>b.extend(p));map.fitBounds(b,{top:70,bottom:40,left:40,right:40});render();
+}
+function clearRoute(){route=null;if(poly){poly.setMap(null);poly=null}}
+async function nearest(){
+ if(!me)return toast('Turn on location to find the nearest spot.');
+ let c=spots().filter(s=>s.s==='free'&&!s.mine),fb=false;
+ if(!c.length){c=spots().filter(s=>s.s==='unk');fb=true}
+ if(!c.length)return toast('No free or unconfirmed spots yet. Try Find bays here or Add a bay.');
+ c.sort((a,b)=>hav(me,a)-hav(me,b));
+ toast(fb?'No confirmed free spots. Checking the nearest unconfirmed ones.':'Finding the best route…');
+ const rs=(await Promise.all(c.slice(0,3).map(routeTo))).filter(Boolean);
+ if(rs.length)showRoute(rs.sort((a,b)=>a.m-b.m)[0]);
+}
+// ---- Adding a bay ----
+function addMode(on){adding=on;$('cross').hidden=!on;if(on){clearRoute();sel=null;ask=null}render()}
+async function addHere(){
+ const n=prompt('Name this bay, e.g. “Westfield level 2”','');if(n===null)return;
+ const c=map.getCenter(),pt={lat:c.lat(),lng:c.lng()};
+ if(!near(pt,'add'))return toast(me?`You need to be within 100 m of the bay to add it. That spot is ${fmt(hav(me,pt))} from you.`:'Turn on location to add a bay.');
+ const {data,error}=await sb.from('bays').insert({name:(n.trim()||'Accessible bay').slice(0,80),...pt,...from()}).select('id').single();
+ if(error&&/too_far|location_required/.test(error.message))return toast(why(error));
+ if(error){console.error(error);return toast('Couldn’t add the bay. Try again.')}
+ adding=false;$('cross').hidden=true;sel=data.id;ask=null;await load();toast('Bay added. Tick it free or taken to help others.');
+}
+// ---- You have to be there: GPS distance limits (the database checks these too) ----
+const LIMIT={capture:100,report:150,add:100};
+const slack=()=>Math.min(Math.max(me?.acc||0,0),50);
+const near=(s,what)=>!!me&&hav(me,s)<=LIMIT[what]+slack();
+const from=()=>me?{from_lat:me.lat,from_lng:me.lng,from_acc:Math.round(me.acc||0)}:{};
+const nearKey=()=>{const s=(route&&route.spot)||(sel&&find(sel));return s?`${near(s,'capture')}${near(s,'report')}`:''};
+function farNote(s){
+ if(!me)return'<div class="far">Turn on location to capture or report this bay.</div>';
+ if(near(s,'capture'))return'';
+ const d=fmt(hav(me,s));
+ return near(s,'report')?`<div class="far">You’re ${d} away. Get within 100 m to capture it.</div>`:`<div class="far">You’re ${d} away. Get within 150 m to report it, or 100 m to capture it.</div>`;
+}
+// ---- Microburbs: area facts and the parking gap (via our Supabase Edge Function) ----
+const MB_NOTE='<p class="src">Area data © Microburbs. Estimates are indicative.</p>';
+function areaKey(s){return s.lat.toFixed(3)+','+s.lng.toFixed(3)}
+async function loadArea(s){
+ const k=areaKey(s);if(areaC[k])return;areaC[k]='loading';
+ const {data,error}=await sb.functions.invoke('Microburbs',{body:{lat:s.lat,lng:s.lng}});
+ areaC[k]=error||!data||data.error?'err':data;if(sel===s.id)render();
+}
+function areaBox(s){
+ const a=areaC[areaKey(s)];if(!a){setTimeout(()=>loadArea(s),0);return'<div class="area"><small>About this area</small><p class="meta">Loading Microburbs data…</p></div>'}
+ if(a==='loading')return'<div class="area"><small>About this area</small><p class="meta">Loading Microburbs data…</p></div>';
+ if(a==='err')return'<div class="area"><small>About this area</small><p class="meta">Couldn’t load area data right now.</p></div>';
+ if(!a.covered)return'<div class="area"><small>About this area</small><p class="meta">Area facts cover the City of Sydney’s 29 suburbs.</p></div>';
+ const pc=x=>x==null?'–':Math.round(x*100)+'%',hill=a.steep_pct==null?'':a.steep_pct>=10?'Hilly':a.steep_pct>=4?'Some slopes':'Mostly flat';
+ return`<div class="area"><small>About ${esc(a.suburb.replace(/ \(.*\)$/,''))} · Microburbs</small>
+ <div class="facts">
+  <div><b>${hill||'–'}</b><span>${a.median_slope_deg??'–'}° median slope, ${a.steep_pct??'–'}% of homes on steep ground</span></div>
+  <div><b>${pc(a.older_share)}</b><span>of residents are 55 or older</span></div>
+  <div><b>${a.health_places??'–'}</b><span>health places nearby, of ${a.destinations??'–'} destinations</span></div>
+  ${a.nearest_hospital?`<div><b>${a.nearest_hospital.dist_km} km</b><span>to ${esc(a.nearest_hospital.name)}</span></div>`:''}
+  ${a.gap_rank?`<div><b>#${a.gap_rank} of ${a.gap_of}</b><span>for missing accessible bays</span></div>`:''}
+ </div>${MB_NOTE}</div>`;
+}
+async function loadGap(){
+ if(gapData&&gapData!=='err')return;gapData='loading';render();
+ const {data,error}=await sb.functions.invoke('Microburbs',{body:{mode:'gap'}});
+ gapData=error||!data||!data.suburbs?'err':data.suburbs;Object.keys(areaC).forEach(k=>{if(areaC[k]==='err')delete areaC[k]});render();
+}
+function gapSheet(){
+ let h=`<div class="row"><h2>Where are bays missing?</h2><button class="x" data-a="gap-close" aria-label="Close">${ico('i-no')}</button></div>
+ <p class="meta">City of Sydney suburbs ranked by need for accessible parking (older residents, health places and destinations, from Microburbs, adjusted for steep streets) against the bays mapped so far.</p>`;
+ if(!gapData||gapData==='loading')return h+'<p class="meta">Crunching Microburbs data for 29 suburbs… this takes a few seconds the first time.</p>';
+ if(gapData==='err')return h+'<p class="meta">Couldn’t load the gap data. Try again in a moment.</p>';
+ const max=gapData[0].gap||1;
+ return h+`<ol class="gap">${gapData.slice(0,12).map(x=>`<li><div><b>${x.rank}. ${esc(x.suburb.replace(/ \(.*\)$/,''))}</b><span>${x.bays} ${x.bays==1?'bay':'bays'} mapped · ${x.older??'–'} residents 55+ · ${x.health_places??'–'} health places</span><i style="width:${Math.max(4,Math.round(x.gap/max*100))}%"></i></div></li>`).join('')}</ol>
+ <p class="meta" style="font-size:12px">Know a bay in a red-zone suburb? Add it, and earn points when people upvote it.</p>${MB_NOTE}`;
+}
+// ---- Sheet ----
+const voteBtns=(a,mine,up,down,off)=>`<div class="votes"><button class="vbtn${mine===1?' on':''}" data-a="${a}" data-v="1" aria-label="Upvote" aria-pressed="${mine===1}" ${off?'disabled':''}>${ico('i-up')}${up}</button><button class="vbtn${mine===-1?' on down':''}" data-a="${a}" data-v="-1" aria-label="Downvote" aria-pressed="${mine===-1}" ${off?'disabled':''}>${ico('i-down')}${down}</button></div>`;
+// ---- Badges: Blue 0-9 points, Bronze 10, Silver 20, Gold 30, Platinum 50 ----
+const TIERS=[['blue','Blue',0],['bronze','Bronze',10],['silver','Silver',20],['gold','Gold',30],['platinum','Platinum',50]];
+const badge=k=>{const t=TIERS.find(t=>t[0]===k);return t?`<span class="bdg b-${t[0]}">${ico('i-medal')}${t[1]}</span>`:''};
+const nameTag=id=>{const p=people[id]||{};return`${esc(p.display_name||'someone')} ${badge(p.badge)}`};
+function personRow(s){
+ const id=s.capBy&&!s.mine?s.capBy:s.repBy;if(!id)return'';
+ const what=s.capBy&&!s.mine?'Captured by':'Last report by',p=people[id]||{},name=p.display_name||s.capName||s.repName||'someone';
+ if(id===uid)return`<div class="who"><div><small>${what}</small><b>you</b></div></div>`;
+ return`<div class="who"><div><small>${what}</small><b>${esc(name)}</b> ${badge(p.badge)} <span class="score">${(p.score??0)>0?'+':''}${p.score??0} trust</span></div>${voteBtns('uvote',myUserVotes[id],p.upvotes??0,p.downvotes??0)}</div>`;
+}
+function sheet(){
+ let h='<div class="grab"></div>';const m=db.mine&&find(db.mine);
+ if(acct){
+  h+=`<div class="row"><h2>Your account</h2><button class="x" data-a="acct-close" aria-label="Close account">${ico('i-no')}</button></div>`;
+  if(isGuest)h+=`<p class="meta">You’re using BlueBay as a guest, <b>${esc(myName)}</b>. Sign in to add bays, vote and earn badges, and to keep your name and trust score on any device.</p>
+   <form id="emailf"><input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com" required aria-label="Email address"><button class="btn primary" type="submit">Email me a sign-in link</button></form>
+   <div class="or">or</div>
+   <button class="btn g" data-a="google"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.3c0-.8-.1-1.5-.2-2.3H12v4.3h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2-1.9 3.2-4.7 3.2-8z"/><path fill="#34A853" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1-3.7 1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7.1H2.1a11 11 0 0 0 0 9.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>Continue with Google</button>
+   <p class="meta" style="margin:10px 0 0;font-size:12px">Your captures, reports and votes so far stay with your account.</p>`;
+  else{const p=people[uid]||{},pts=p.points||0,i=TIERS.findIndex(t=>t[0]===(p.badge||'blue')),nx=TIERS[i+1],cur=TIERS[i]||TIERS[0];
+   h+=`<p class="meta">Signed in${myEmail?` as <b>${esc(myEmail)}</b>`:''}.</p>
+   <div class="mine"><b>${esc(myName)}</b> ${badge(cur[0])}<br><span class="score">${pts} ${pts==1?'point':'points'} · ${(p.score??0)>0?'+':''}${p.score??0} trust</span>
+   ${nx?`<div class="prog" role="progressbar" aria-valuemin="${cur[2]}" aria-valuemax="${nx[2]}" aria-valuenow="${pts}"><i style="width:${Math.round((pts-cur[2])/(nx[2]-cur[2])*100)}%"></i></div><span class="score">${nx[2]-pts} more to ${nx[1]}</span>`:'<div class="score" style="margin-top:6px">Top badge reached. Thank you!</div>'}</div>
+   <div class="tiers">${TIERS.map(t=>badge(t[0]).replace('class="bdg','class="bdg'+(t[2]<=pts?' got':''))).join('')}</div>
+   <p class="meta" style="font-size:12px">Add bays you know. Each one with more upvotes than downvotes earns you a point, and each with more downvotes costs one. ${p.pins_added?`So far: ${p.pins_added} added, ${p.pins_up} up, ${p.pins_down} down.`:''}</p>
+   <div class="grid2"><button class="btn" data-a="rename">Change name</button><button class="btn" data-a="signout">Sign out</button></div>`}
+ }
+ else if(gapView)h+=gapSheet();
+ else if(adding)h+=`<h2>Place a new bay</h2><p class="meta">Drag the map until the pin sits on the bay, then add it. You need to be within 100 m of it.</p><div class="grid2"><button class="btn" data-a="add-no">Cancel</button><button class="btn primary" data-a="add-ok">${ico('i-flag')}Add here</button></div>`;
+ else if(route){const r=route,k=kind(r.spot);
+  h+=`<div class="row"><h2>To ${esc(r.spot.name)}</h2><span class="badge" style="background:${col[k]}">${lbl[k]}</span><button class="x" data-a="end" aria-label="Close directions">${ico('i-no')}</button></div>
+  <p class="meta">${fmt(r.m)} away, about ${Math.max(1,Math.round(r.ms/6e4))} min by car</p>
+  <ol class="steps">${r.steps.map(([t,d])=>`<li>${esc(t)}<span>${fmt(d)}</span></li>`).join('')}<li>Arrive at ${esc(r.spot.name)}<span></span></li></ol>
+  <div class="grid2"><button class="btn primary" data-a="go">${ico('i-nav')}Open in Google Maps</button><button class="btn" data-a="capture" ${r.spot.s==='taken'||r.spot.mine||!near(r.spot,'capture')?'disabled':''}>${ico('i-flag')}Capture spot</button></div>`}
+ else if(sel){const s=find(sel),k=kind(s),n=s.n,own=s.by&&s.by===uid;
+  const meta=s.mine?'You captured this spot. Release it when you leave.':k==='unk'?(s.checked?`No firm status. Last checked ${agoT(s.checked)}.`:'Nobody has checked this bay yet. Tick it free or taken to help others.'):`${k==='free'?'Confirmed free':'Reported taken'} by ${n} ${n==1?'person':'people'}, ${agoT(s.t)}.`;
+  h+=`<div class="row"><h2>${esc(s.name)}</h2><span class="badge" style="background:${col[k]}">${lbl[k]}</span></div><p class="meta">${meta}</p>${s.mine?'':farNote(s)}
+  <div class="grid2"><button class="btn primary" data-a="capture" ${s.s==='taken'||s.mine||!near(s,'capture')?'disabled':''}>${ico('i-flag')}Capture</button><button class="btn" data-a="release" ${s.mine?'':'disabled'}>${ico('i-undo')}Release</button></div>
+  <div class="q">Is this spot free right now?</div>
+  <div class="grid2"><button class="btn free" data-a="free" ${s.mine||!near(s,'report')?'disabled':''}>${ico('i-ok')}Free</button><button class="btn taken" data-a="taken" ${s.mine||!near(s,'report')?'disabled':''}>${ico('i-no')}Taken</button></div>
+  <div style="height:8px"></div><button class="btn" data-a="dir" ${s.mine||s.s==='taken'?'disabled':''}>${ico('i-nav')}Directions to this spot</button>
+  <div class="who"><div><small>${own?'You added this bay':s.src==='user'&&s.by?`Added by ${nameTag(s.by)}<br>Is it a real bay, in the right place?`:'Is this pin a real bay, in the right place?'}</small><b>${s.score>0?'+':''}${s.score} pin score</b></div>${voteBtns('pvote',s.vote,s.up,s.down,own)}</div>
+  ${personRow(s)}${areaBox(s)}`}
+ else{const all=spots(),f=all.filter(s=>s.s==='free'&&!s.mine).length,t=all.filter(s=>s.s==='taken'&&!s.mine).length,u=all.filter(s=>s.s==='unk').length;
+  h+=`<h2>Find a free bay</h2><p class="meta">${all.length?`${f} free, ${t} taken and ${u} unsure. Tap a pin to capture, release or confirm it.`:'No bays on the map yet. Find mapped bays or add one where you are.'}</p>`
+  +(m?`<div class="mine">You’re parked at <b>${esc(m.name)}</b>.</div><button class="btn" data-a="release-mine">${ico('i-undo')}Release my spot</button><div style="height:8px"></div>`:'')
+  +`<button class="btn primary" data-a="near">${ico('i-nav')}Directions to nearest free spot</button><div style="height:8px"></div>
+  <div class="grid2"><button class="btn" data-a="find">Find bays here</button><button class="btn" data-a="add">Add a bay</button></div>
+  <div style="height:8px"></div><button class="btn" data-a="gap">${ico('i-flag')}Where are bays missing?</button>
+  <p class="meta" style="margin:10px 0 0;font-size:12px">${myName?`You’re <b>${esc(myName)}</b> · <a href="#" data-a="rename">Change name</a> · `:''}Statuses are shared live with everyone. Mapped bays come from OpenStreetMap contributors.</p>`}
+ $('sheet').innerHTML=h;
+ const a=$('acct');a.textContent=(myName.replace(/^Driver /,'')||'?').slice(0,2).toUpperCase();a.classList.toggle('guest',isGuest);
+ a.setAttribute('aria-label',isGuest?'Account: guest, sign in':'Your account');
+}
+function render(){
+ drawMarkers();sheet();popup();
+ $('count').textContent=spots().filter(s=>s.s==='free'&&!s.mine).length+' free nearby';
+ $('fab').hidden=!!route||adding;
+}
+// ---- Actions: each one writes to Supabase, then reloads ----
+const why=e=>e.code==='23505'?'Someone else just captured it.':/location_required/.test(e.message)?'Turn on location to do this.':/too_far/.test(e.message)?'Your GPS says you’re too far from this bay.':'Something went wrong. Try again.';
+async function act(a,el){
+ const s=find(sel);
+ if(a==='near')return nearest();
+ if(a==='find')return importBays('');
+ if(a==='add'){if(isGuest){acct=true;render();return toast('Sign in to add a bay.')}return addMode(true)}
+ if(a==='add-no')return addMode(false);
+ if(a==='add-ok')return addHere();
+ if(a==='end'){clearRoute();return render()}
+ if(a==='go'){const d=route.spot;return window.open(`https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}&travelmode=driving`,'_blank')}
+ if(a==='rename'){const n=prompt('Your display name (2 to 30 characters)',myName);if(n===null)return;const v=n.trim();
+  if(v.length<2||v.length>30)return toast('Names need 2 to 30 characters.');
+  const {error}=await sb.from('profiles').update({display_name:v}).eq('id',uid);if(error)return toast(why(error));myName=v;toast('Name updated.');return render()}
+ if(a==='release-mine')return release(db.mine);
+ if(a==='acct-close'){acct=false;return render()}
+ if(a==='gap'){gapView=true;sel=ask=null;render();return loadGap()}
+ if(a==='gap-close'){gapView=false;return render()}
+ if(a==='google')return google();
+ if(a==='signout'){await sb.auth.signOut();uid=null;await signIn();acct=false;toast('Signed out. You’re a guest now.');return load()}
+ if(!s)return;
+ if((a==='pvote'||a==='uvote')&&isGuest){acct=true;render();return toast('Sign in to vote.')}
+ if(a==='dir'){toast('Finding the route…');const r=await routeTo(s);return r&&showRoute(r)}
+ if(busy)return;busy=true;
+ try{
+  if(a==='capture'){
+   if(s.s==='taken'||s.mine)return;
+   if(db.mine)return toast(`Release ${find(db.mine).name} before capturing another spot.`);
+   const {error}=await sb.from('captures').insert({bay_id:s.id,...from()});if(error)return toast(why(error));
+   if(route&&route.spot.id===s.id)clearRoute();toast('Spot captured. Others now see it as taken.');
+  }else if(a==='release')return release(s.id);
+  else if(a==='free'||a==='taken'){
+   const {error}=await sb.from('reports').insert({bay_id:s.id,status:a,...from()});if(error)return toast(why(error));
+   if(a==='taken'&&route&&route.spot.id===s.id)clearRoute();toast(a==='free'?'Thanks. Marked as free.':'Thanks. Marked as taken.');
+  }else if(a==='pvote'){
+   const v=+el.dataset.v,q=sb.from('pin_votes');
+   const {error}=s.vote===v?await q.delete().eq('bay_id',s.id).eq('user_id',uid):s.vote?await q.update({vote:v}).eq('bay_id',s.id).eq('user_id',uid):await q.insert({bay_id:s.id,vote:v});
+   if(error)return toast(why(error));
+  }else if(a==='uvote'){
+   const id=s.capBy&&!s.mine?s.capBy:s.repBy,v=+el.dataset.v,cur=myUserVotes[id],q=sb.from('user_votes');
+   const {error}=cur===v?await q.delete().eq('voter_id',uid).eq('target_id',id):cur?await q.update({vote:v}).eq('voter_id',uid).eq('target_id',id):await q.insert({target_id:id,vote:v});
+   if(error)return toast(why(error));await loadMyVotes();
+  }
+  ask=null;await load();
+ }finally{busy=false}
+}
+async function release(id){
+ if(!id)return;
+ const {error}=await sb.from('captures').update({ended_at:new Date().toISOString()}).eq('bay_id',id).eq('user_id',uid).is('ended_at',null);
+ if(error)return toast(why(error));
+ ask=null;toast('Spot released. It now shows as free.');await load();
+}
+$('sheet').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&!b.disabled){e.preventDefault();act(b.dataset.a,b)}});
+$('pop').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;const s=find(sel);
+ if(b.dataset.q==='close'){ask=null;return render()}
+ if(s)act(b.dataset.q==='yes'?s.s:s.s==='free'?'taken':'free')});
+// ---- Logging in ----
+// Guest + new email: the guest account gets that email (after they tap the link).
+// Email already has an account: send a normal sign-in link instead.
+async function emailLink(email){
+ if(isGuest){
+  const {error}=await sb.auth.updateUser({email},{emailRedirectTo:BACK});
+  if(!error)return toast('Check your email and tap the link to finish.');
+  if(error.code!=='email_exists'&&!/already/i.test(error.message)){console.error(error);return toast(error.message)}
+ }
+ const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:BACK}});
+ if(error){console.error(error);return toast(error.status===429?'Too many emails sent. Wait a bit and try again.':error.message)}
+ toast('Check your email for a sign-in link.');
+}
+async function google(){
+ const {error}=isGuest?await sb.auth.linkIdentity({provider:'google',options:{redirectTo:BACK}})
+  :await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:BACK}});
+ if(error){console.error(error);toast(/manual linking/i.test(error.message)?'Turn on manual linking in Supabase first.':/provider is not enabled/i.test(error.message)?'Google sign-in isn’t set up in Supabase yet.':error.message)}
+}
+$('sheet').addEventListener('submit',e=>{if(e.target.id!=='emailf')return;e.preventDefault();const v=$('email').value.trim();if(v)emailLink(v)});
+$('acct').addEventListener('click',()=>{acct=!acct;if(acct){clearRoute();adding=false;$('cross').hidden=true;sel=ask=null}render()});
+$('fab').addEventListener('click',()=>act('near'));
+$('loc').addEventListener('click',()=>{if(me&&map){map.panTo(me);map.setZoom(17)}else toast('Turn on location to centre the map on you.')});
+addEventListener('resize',place);
+render();
+</script>
+</body>
+</html>
